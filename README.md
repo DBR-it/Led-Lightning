@@ -1,5 +1,11 @@
 # LED Lighting Control System
 
+Built with an ESP32 board
+
+Amazon affiliate link if you use the link Thanks:
+
+<a href="https://a.co/d/iql5nSh">https://a.co/d/iql5nSh</a>
+
 Packages
 
 To automatically download the necessary configuration, follow these steps:
@@ -9,6 +15,16 @@ To automatically download the necessary configuration, follow these steps:
 3.  Copy and paste the following code into the empty YAML file:
 
 ```yaml
+substitutions:
+  device_name: "leds-lighting"         # The main name for the ESPHome device (Home Assistant entity)
+  base_name: "led"                     # The base part of the name for each light entity
+  id_base: "light"                     # The ID prefix for each light's internal reference
+  total_lights: "8"                    # Number of lights (currently for reference only)
+  binary_sensor_name: "led switch" # Name for the button (binary sensor) in Home Assistant 
+  sensor_name: "Q1_tempsensor"         # Name for the Dallas 1-Wire temperature sensor
+  fallback_ap_ssid: "led lighting"     # The fallback AP SSID
+  fallback_ap_password: "FXo2haFsq3LO" # The fallback AP password    
+
 packages:
   remote_package_shorthand: github://DBR-it/Led-Lightning/led-lighting.yaml
 ```    
