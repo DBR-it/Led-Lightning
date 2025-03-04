@@ -1,6 +1,15 @@
 # Ceiling LED Lighting Control System
 
 
+Packages
+Put this in your Yaml file that you create it will auto download
+
+packages:
+  remote_package:
+    url: https://github.com/Jafterdark/Led-Lightning
+    refresh: 0d
+    files: [led-lighting.yaml]  # Main file
+    
 This document provides a guide on how to update and configure the ESPHome project. Below, you'll find instructions on modifying key elements like device names, SSIDs, passwords, sensor names, and more.
 
 ## Substitutions
