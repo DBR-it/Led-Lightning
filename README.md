@@ -13,7 +13,7 @@ To automatically download the necessary configuration, follow these steps:
 ```yaml
 packages:
   remote_package:
-    url: [https://github.com/Jafterdark/Led-Lightning](https://github.com/Jafterdark/Led-Lightning)
+    url: https://github.com/DBR-it/Led-Lightning
     refresh: 0d
     files: [led-lighting.yaml] # Main file
 ```    
