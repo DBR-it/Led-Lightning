@@ -10,10 +10,7 @@ To automatically download the necessary configuration, follow these steps:
 
 ```yaml
 packages:
-  remote_package:
-    url: https://github.com/DBR-it/Led-Lightning
-    refresh: 0d
-    files: [led-lighting.yaml] # Main file
+  remote_package_shorthand: github://DBR-it/Led-Lightning/led-lighting.yaml
 ```    
 This document provides a guide on how to update and configure the ESPHome project. Below, you'll find instructions on modifying key elements like device names, SSIDs, passwords, sensor names, and more.
 
