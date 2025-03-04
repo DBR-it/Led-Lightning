@@ -1,7 +1,5 @@
 # Ceiling LED Lighting Control System
 
-# Ceiling LED Lighting Control System
-
 Packages
 
 To automatically download the necessary configuration, follow these steps:
