@@ -17,15 +17,15 @@
 # throughout the config, making it easy to update
 # certain values in one place.
 # -------------------------------------------------
-substitutions:
-  device_name: "leds-lighting"         # The main name for the ESPHome device (Home Assistant entity)
-  base_name: "led"                     # The base part of the name for each light entity
-  id_base: "light"                     # The ID prefix for each light's internal reference
-  total_lights: "8"                    # Number of lights (currently for reference only)
-  binary_sensor_name: "led switch" # Name for the button (binary sensor) in Home Assistant 
-  sensor_name: "Q1_tempsensor"         # Name for the Dallas 1-Wire temperature sensor
-  fallback_ap_ssid: "led lighting"     # The fallback AP SSID
-  fallback_ap_password: "FXo2haFsq3LO" # The fallback AP password         
+# substitutions:
+#   device_name: "leds-lighting"         # The main name for the ESPHome device (Home Assistant entity)
+#   base_name: "led"                     # The base part of the name for each light entity
+#   id_base: "light"                     # The ID prefix for each light's internal reference
+#   total_lights: "8"                    # Number of lights (currently for reference only)
+#   binary_sensor_name: "led switch" # Name for the button (binary sensor) in Home Assistant 
+#   sensor_name: "Q1_tempsensor"         # Name for the Dallas 1-Wire temperature sensor
+#   fallback_ap_ssid: "led lighting"     # The fallback AP SSID
+#   fallback_ap_password: "FXo2haFsq3LO" # The fallback AP password         
   
     
 # -------------------------------------------------
