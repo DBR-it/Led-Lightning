@@ -7,14 +7,14 @@ This document provides a guide on how to update and configure the ESPHome projec
 
 In our ESPHome configuration, we use **substitutions** to make the file easier to customize. For example:
 
-substitutions:
-  device_name: "leds Lighting"         # The main name for the ESPHome device (Home Assistant entity)
-  base_name: "Led"                     # The base part of the name for each light entity
-  id_base: "light"                     # The ID prefix for each light's internal reference
-  total_lights: "8"                    # Number of lights (currently for reference only)
-  sensor_name: "Q1_tempsensor"         # Name for the Dallas 1-Wire temperature sensor
-  fallback_ap_ssid: "led lighting"     # The fallback AP SSID
-  fallback_ap_password: "FXo2haFsq3LO" # The fallback AP password         
+## substitutions:
+-  device_name: "leds Lighting"         # The main name for the ESPHome device (Home Assistant entity)
+-  base_name: "Led"                     # The base part of the name for each light entity
+-  id_base: "light"                     # The ID prefix for each light's internal reference
+-  total_lights: "8"                    # Number of lights (currently for reference only)
+-  sensor_name: "Q1_tempsensor"         # Name for the Dallas 1-Wire temperature sensor
+-  fallback_ap_ssid: "led lighting"     # The fallback AP SSID
+-  fallback_ap_password: "FXo2haFsq3LO" # The fallback AP password         
 
 ## Project Overview
 This project is a smart LED ceiling lighting control system using an ESP32 microcontroller and the ESPHome firmware. The system is designed to control eight monochromatic LED channels with dynamic dimming, effects, and automation through a GPIO push button. The configuration is modular and supports future expansion through additional sensors or control modules.
