@@ -4,7 +4,7 @@ Built with an ESP32 board
 
 Amazon affiliate link if you use the link Thanks:
 
-<a href="https://a.co/d/iql5nSh" target="_blank">https://a.co/d/iql5nSh</a>
+<a href="https://a.co/d/iql5nSh" target="_blank" rel="noopener noreferrer">https://a.co/d/iql5nSh</a>
 
 Packages
 
