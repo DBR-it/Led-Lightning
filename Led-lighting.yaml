@@ -1,0 +1,458 @@
+# ===========================================
+# ESPHome LED & Sensor Controller
+# ===========================================
+# This configuration is for an ESP32 device that:
+#  - Controls multiple LEDs using PWM.
+#  - Reads temperatures from one or more Dallas 1-Wire sensors.
+#  - Provides dimming control via a button.
+#  - Exposes a web server and integrates with Home Assistant.
+
+# Adjust the substitutions below to tailor device names,
+# sensor names, and more. Then upload to your ESP32.
+
+
+
+# -------------------------------------------------
+# Substitutions: variables that can be referenced
+# throughout the config, making it easy to update
+# certain values in one place.
+# -------------------------------------------------
+substitutions:
+  device_name: "leds Lighting"         # The main name for the ESPHome device (Home Assistant entity)
+  base_name: "Led"                     # The base part of the name for each light entity
+  id_base: "light"                     # The ID prefix for each light's internal reference
+  total_lights: "8"                    # Number of lights (currently for reference only)
+  sensor_name: "Q1_tempsensor"         # Name for the Dallas 1-Wire temperature sensor
+  fallback_ap_ssid: "led lighting"     # The fallback AP SSID
+  fallback_ap_password: "FXo2haFsq3LO" # The fallback AP password         
+  
+    
+# -------------------------------------------------
+# Primary configuration for the ESPHome device.
+# "name" is how Home Assistant recognizes this node.
+# -------------------------------------------------
+esphome:
+  name: ${device_name}
+
+# -------------------------------------------------
+# Board & Framework: This config ensures we use
+# an ESP32 dev board with Arduino framework.
+# -------------------------------------------------
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# -------------------------------------------------
+# Logger: Enables logs from the device.
+# -------------------------------------------------
+logger:
+
+# -------------------------------------------------
+# API & OTA: Allows remote updates & integration
+# with Home Assistant via native ESPHome API.
+# -------------------------------------------------
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# -------------------------------------------------
+# Wi-Fi Configuration: Connects the device to
+# your Wi-Fi network. 
+# -------------------------------------------------
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+  reboot_timeout: 0s
+# -------------------------------------------------  
+#Fallback hotspot included.  
+# -------------------------------------------------
+  ap:
+    ssid: "${fallback_ap_ssid}"
+    password: "${fallback_ap_password}"
+
+# -------------------------------------------------
+# Captive Portal: Helps with Wi-Fi setup when 
+# connected to the fallback AP.
+# -------------------------------------------------
+captive_portal:
+
+# -------------------------------------------------
+# Web Server: Allows direct access to logs, 
+# control, and debugging on port 80.
+# -------------------------------------------------
+web_server:
+  port: 80
+
+# -------------------------------------------------
+# One-Wire: We specify the GPIO pin for
+# Dallas one-wire sensors.
+# -------------------------------------------------
+one_wire:
+  - platform: gpio
+    pin: GPIO18
+
+# -------------------------------------------------
+# Globals: Storing state for dimming, etc.
+# "lights" is a vector referencing all light IDs.
+# -------------------------------------------------
+globals:
+  - id: dim_up
+    type: bool
+    restore_value: false
+    initial_value: 'true'
+  - id: dimming
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+  - id: dim_level
+    type: int
+    restore_value: false
+    initial_value: '0'
+  - id: lights
+    type: "std::vector<LightState *>"
+    restore_value: false
+    # Manually listing each light. If you add more, ensure you list them here.
+    initial_value: '{${id_base}1, ${id_base}2, ${id_base}3, ${id_base}4, ${id_base}5, ${id_base}6, ${id_base}7, ${id_base}8}'
+
+# -------------------------------------------------
+# Restart Switch: Exposes a switch in Home Assistant
+# to remotely reboot this ESP.
+# -------------------------------------------------
+switch:
+  - platform: restart
+    name: "Restart ${device_name}"
+
+# -------------------------------------------------
+# Script: Provides a custom dimming routine.
+# On press, we run the script and increment or 
+# decrement brightness over time.
+# -------------------------------------------------
+script:
+  - id: dimmer
+    then:
+      - globals.set:
+          id: dimming
+          value: 'false'
+      - delay: 1s
+      - globals.set:
+          id: dimming
+          value: 'true'
+      - while:
+          condition:
+            lambda: return true;
+          then:
+            - lambda: |-
+                float level;
+                if (id(dim_up)) {
+                  // If already at max, stop
+                  if (id(dim_level) == 20)
+                    return;
+                  // Increase dim level
+                  id(dim_level)++;
+                  level = id(dim_level) / 20.0;
+                  // Update each light
+                  for (auto light : id(lights)) {
+                    auto call = light->make_call();
+                    call.set_state(true);
+                    call.set_transition_length(100);
+                    call.set_brightness(level);
+                    call.perform();
+                  }
+                } else {
+                  // If at 0, stop
+                  if (id(dim_level) == 0)
+                    return;
+                  // Decrease dim level
+                  id(dim_level)--;
+                  level = id(dim_level) / 20.0;
+                  // Update each light
+                  for (auto light : id(lights)) {
+                    auto call = light->make_call();
+                    call.set_state(level != 0);
+                    call.set_transition_length(100);
+                    call.set_brightness(level);
+                    call.perform();
+                  }
+                }
+            - delay: 100ms
+
+# -------------------------------------------------
+# Outputs: Using the LEDC platform for controlling
+# each LED channel on pins 5,14,27, etc.
+# -------------------------------------------------
+output:
+  - platform: ledc
+    pin: 5
+    frequency: 40000Hz
+    id: led_output0
+  - platform: ledc
+    pin: 14
+    frequency: 40000Hz
+    id: led_output1
+  - platform: ledc
+    pin: 27
+    frequency: 40000Hz
+    id: led_output2
+  - platform: ledc
+    pin: 26
+    frequency: 40000Hz
+    id: led_output3
+  - platform: ledc
+    pin: 4
+    frequency: 40000Hz
+    id: led_output4
+  - platform: ledc
+    pin: 16
+    frequency: 40000Hz
+    id: led_output5
+  - platform: ledc
+    pin: 33
+    frequency: 40000Hz
+    id: led_output6
+  - platform: ledc
+    pin: 32
+    frequency: 40000Hz
+    id: led_output7
+
+# -------------------------------------------------
+# Lights: We define eight monochromatic LEDs
+# referencing the LEDC outputs above.
+# Each light has gamma correction, restore mode,
+# default transition, and some effects.
+# -------------------------------------------------
+light:
+  - platform: monochromatic
+    id: ${id_base}1
+    name: "${base_name} 1"
+    output: led_output0
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          # transition_length: 1s
+          update_interval: 2s
+
+  - platform: monochromatic
+    id: ${id_base}2
+    name: "${base_name} 2"
+    output: led_output1
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          update_interval: 2s
+
+  - platform: monochromatic
+    id: ${id_base}3
+    name: "${base_name} 3"
+    output: led_output2
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          update_interval: 2s
+
+  - platform: monochromatic
+    id: ${id_base}4
+    name: "${base_name} 4"
+    output: led_output3
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          update_interval: 2s
+
+  - platform: monochromatic
+    id: ${id_base}5
+    name: "${base_name} 5"
+    output: led_output4
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          update_interval: 2s
+
+  - platform: monochromatic
+    id: ${id_base}6
+    name: "${base_name} 6"
+    output: led_output5
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          update_interval: 2s
+
+  - platform: monochromatic
+    id: ${id_base}7
+    name: "${base_name} 7"
+    output: led_output6
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          update_interval: 2s
+
+  - platform: monochromatic
+    id: ${id_base}8
+    name: "${base_name} 8"
+    output: led_output7
+    gamma_correct: 1.2
+    restore_mode: RESTORE_DEFAULT_OFF
+    default_transition_length: 0.5s
+    effects:
+      - flicker:
+      - flicker:
+          name: "Flicker Effect With Custom Values"
+          alpha: 95%
+          intensity: 1.5%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - pulse:
+          name: "Slow Pulse"
+          update_interval: 2s
+
+# -------------------------------------------------
+# Binary Sensor: A push button on GPIO22.
+# Press runs the dimmer script, release stops it.
+# Also toggles lights fully ON or OFF.
+# -------------------------------------------------
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO22
+      mode: INPUT_PULLUP
+    name: "${binary_sensor_name}"
+    id: button
+    filters:
+      - invert:
+    on_press:
+      then:
+        - script.execute: dimmer
+    on_release:
+      then:
+        - script.stop: dimmer
+        - lambda: |-
+            // If we were dimming, flip dim_up on release
+            if (id(dimming)) {
+              id(dim_up) = !id(dim_up);
+              return;
+            }
+            // Check if any light is ON
+            bool on = false;
+            for (auto light: id(lights)) {
+              on = on || light->remote_values.is_on();
+            }
+            if (on) {
+              // Turn lights off, reset level to 0
+              id(dim_up) = true;
+              id(dim_level) = 0;
+              for (auto light: id(lights)) {
+                auto call = light->make_call();
+                call.set_state(false);
+                call.set_transition_length(light->remote_values.get_brightness() * 1000);
+                call.perform();
+              }
+            } else {
+              // Turn lights on, set level to max
+              id(dim_up) = false;
+              id(dim_level) = 20;
+              for (auto light: id(lights)) {
+                auto call = light->make_call();
+                call.set_state(true);
+                call.set_brightness(1);
+                call.set_transition_length(light->remote_values.get_brightness() * 1000);
+                call.perform();
+              }
+            }
+
+# -------------------------------------------------
+# Sensor: Dallas 1-Wire sensors with names pulled
+# from the sensor_name & brain_sensor_name.
+# -------------------------------------------------
+sensor:
+  # First sensor, named per sensor_name.
+  - platform: dallas_temp
+    name: "${sensor_name}"
