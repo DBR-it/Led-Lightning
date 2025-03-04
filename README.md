@@ -1,15 +1,22 @@
 # Ceiling LED Lighting Control System
 
+# Ceiling LED Lighting Control System
 
 Packages
-Put this in your Yaml file that you create it will auto download
 
+To automatically download the necessary configuration, follow these steps:
+
+1.  Create a new YAML file (e.g., `my_led_config.yaml`).
+2.  **Delete any existing content** within the newly created YAML file.
+3.  Copy and paste the following code into the empty YAML file:
+
+```yaml
 packages:
   remote_package:
-    url: https://github.com/Jafterdark/Led-Lightning
+    url: [https://github.com/Jafterdark/Led-Lightning](https://github.com/Jafterdark/Led-Lightning)
     refresh: 0d
-    files: [led-lighting.yaml]  # Main file
-    
+    files: [led-lighting.yaml] # Main file
+```    
 This document provides a guide on how to update and configure the ESPHome project. Below, you'll find instructions on modifying key elements like device names, SSIDs, passwords, sensor names, and more.
 
 ## Substitutions
