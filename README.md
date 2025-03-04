@@ -1,4 +1,4 @@
-# Ceiling LED Lighting Control System
+# LED Lighting Control System
 
 Packages
 
